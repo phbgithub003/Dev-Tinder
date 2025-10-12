@@ -1,42 +1,35 @@
 const express = require("express");
-const {adminAuth} = require("./middleware/auth");  
-const {userAuth} = require("./middleware/user"); 
+const connectDB = require("./config/database");
+const User = require("./model/user");
 
 const app = express();
 
+app.post("/signup",async (req,res)=>{
+    const user = new User({
+    firstName: "Harshit",
+    lastName: "Palacehrla",
+    emailID: "harshit@flipkart.com",
+    password: "Harshit@123",
+    age: 24,
+    gender: "male",
 
-
-app.use("/admin", adminAuth);
-
-app.get("/admin/getAllUsers",(req,res)=>{
-    res.send("all users data");
-})
-
-app.post("/user/login",(req,res)=>{
-    res.send("user logged in successfully");
-})
-
-app.get("/user/getdata",userAuth,(req,res)=>{
-    res.send("user data sent");
-})
-
-app.delete("/admin/deleteUser/:id",(req,res)=>{
-    params = req.params;
-    res.send(`user with id ${params.id} deleted`);
-})
-
-
-app.get("/getUserData",(req,res)=>{
-    throw new Error("some error occured"); // to test error handling middleware
-    res.send("user data");
-})
-
-app.use("/",(err,req,res,next)=>{
-    if(err) {
-        res.status(500).send("some error occured");
+}); // Creating a new instance of the User model
+    try {
+        await user.save();
+        res.send("User signed up successfully");
+    } catch (error) {
+        res.status(500).send("Error signing up user: " + error.message);
     }
+    
+
 })
 
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
+connectDB().then(() => {
+    console.log("DB connected successfully");
+  app.listen(3000, () => {
+    console.log("server is running on port 3000");
+  });
+}).catch((err) => {
+    console.log("DB connection failed");
+    console.log(err);
 });
