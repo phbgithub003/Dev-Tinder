@@ -1,0 +1,19 @@
+{
+  "name": "dev-tinder",
+  "version": "1.0.0",
+  "description": "tinder for devs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js"
+  },
+  "keywords": [
+    "node",
+    "js"
+  ],
+  "author": "Harshit bhargava palacherla",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
