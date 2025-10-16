@@ -1,38 +1,50 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./model/user");
+const {
+    validateSignUpData,
+    validateLoginData,
+} = require("./utils/validations");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/signup",async (req,res)=>{
-    const user = new User(req.body); 
+app.post("/signup", async (req, res) => {
     console.log(req.body);
+
     try {
+        const { firstName, lastName, emailID, password } = req.body;
+        validateSignUpData(req);
+        const passHash = await bcrypt.hash(password, 10);
+        const user = new User({
+            firstName,
+            lastName,
+            emailID,
+            password: passHash,
+        });
         await user.save();
         res.send("User signed up successfully");
     } catch (error) {
-        res.status(500).send("Error signing up user: " + error.message);
+        res.status(400).send("Error: " + error.message);
     }
-})
+});
 
-
-app.get("/feed",async (req,res)=>{
-    try{
+app.get("/feed", async (req, res) => {
+    try {
         const users = await User.find({});
         res.send(users);
-
-    } catch(error){
+    } catch (error) {
         res.status(400).send("something went wrong" + error.message);
     }
-})
+});
 
-app.get("/user",async (req,res)=>{
+app.get("/user", async (req, res) => {
     const email = req.body.emailID;
     try {
-        const user = await User.find({emailID: email});
-        if(user.length === 0){
+        const user = await User.find({ emailID: email });
+        if (user.length === 0) {
             res.status(404).send("User not found");
         } else {
             res.send(user);
@@ -40,44 +52,69 @@ app.get("/user",async (req,res)=>{
     } catch (error) {
         res.status(400).send("something went wrong" + error.message);
     }
-})
+});
 
-app.delete("/user", async (req,res)=>{
+app.delete("/user", async (req, res) => {
     const userId = req.body.userId;
     try {
         await User.findByIdAndDelete(userId);
         res.send("User deleted successfully");
-
-    }catch(error){
+    } catch (error) {
         res.status(400).send("something went wrong" + error.message);
     }
-})
+});
 
-app.put("/user/:id", async (req,res)=>{
+app.put("/user/:id", async (req, res) => {
     const userId = req.params?.id;
-    const allowedUpdates = ["age","skills","gender","userId"];
-    const {  age, skills } = req.body;
-    const isUpdatesAllowed = Object.keys(req.body).every(k =>
-      allowedUpdates.includes(k)
+    const allowedUpdates = ["age", "skills", "gender", "userId"];
+    const { age, skills } = req.body;
+    const isUpdatesAllowed = Object.keys(req.body).every((k) =>
+        allowedUpdates.includes(k)
     );
-    if(!isUpdatesAllowed){
+    if (!isUpdatesAllowed) {
         res.status(400).send("Update not allowed");
     }
-    try{
-        await User.findByIdAndUpdate(userId, {age: age,skills:skills},{runValidators: true});
+    try {
+        await User.findByIdAndUpdate(
+            userId,
+            { age: age, skills: skills },
+            { runValidators: true }
+        );
         res.send("User updated successfully");
-
-    } catch(error){
+    } catch (error) {
         res.status(400).send("something went wrong" + error.message);
     }
-})
-
-connectDB().then(() => {
-    console.log("DB connected successfully");
-  app.listen(3000, () => {
-    console.log("server is running on port 3000");
-  });
-}).catch((err) => {
-    console.log("DB connection failed");
-    console.log(err);
 });
+
+app.post("/login", async (req, res) => {
+    try {
+        validateLoginData(req);
+        const { emailID, password } = req.body;
+        const user = await User.findOne({ emailID: emailID });
+        if (!user) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        const ok = await bcrypt.compare(password, user.password);
+        if (!ok) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        // 5) success
+        return res.status(200).json({ message: "User can login" });
+    } catch (error) {
+        res.status(500).send("Error:", error.message);
+    }
+});
+
+connectDB()
+    .then(() => {
+        console.log("DB connected successfully");
+        app.listen(3000, () => {
+            console.log("server is running on port 3000");
+        });
+    })
+    .catch((err) => {
+        console.log("DB connection failed");
+        console.log(err);
+    });

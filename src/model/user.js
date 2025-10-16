@@ -31,9 +31,8 @@ const userSchema = new mongoose.Schema(
     skills: { type: [String] },
     photoUrl: {
       type: String,
-      default: "this is a default about a user",
       validate(value) {
-        if (!validator.isURL(value)) {
+        if ((value.length != 0) &&  !validator.isURL(value)) {
           throw new Error("Invalid URL format");
         }
       },
