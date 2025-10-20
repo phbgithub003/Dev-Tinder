@@ -1,4 +1,7 @@
 const validator = require("validator");
+const User = require("../model/user");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const validateSignUpData = (req) =>{
     const {firstName,lastName,emailID, password} = req.body;
@@ -22,4 +25,11 @@ const validateLoginData = (req) =>{
     }
 }
 
-module.exports = {validateSignUpData,validateLoginData}
+const validateProfileViewData=(req) =>{
+    const allowedEditFields = ["latName","photoUrl","about","skills","age","gender"];
+    const isAllowed = Object.keys(req.body).every(field => allowedEditFields.includes(field));
+
+    return isAllowed
+} 
+
+module.exports = {validateSignUpData,validateLoginData,validateProfileViewData}
