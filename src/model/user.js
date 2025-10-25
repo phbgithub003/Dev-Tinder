@@ -39,11 +39,14 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+    about:{type:String,length:200}
   },
   {
     timestamps: true,
   }
 );
+
+userSchema.index({firstName:1,lastName:1});
 
 userSchema.methods.getJWT = async function () {
   let user = this

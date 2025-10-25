@@ -9,7 +9,7 @@ const User = require("../model/user")
 authRouter.post("/signup", async (req, res) => {
     try {
         validateSignUpData(req);
-        const { emailID, password, firstName, lastName } = req.body;
+        const { emailID, password, firstName, lastName, gender, age, about , photoUrl } = req.body;
 
         const hashPwd = await bcrypt.hash(password, 10);
         const user = new User({
@@ -17,6 +17,7 @@ authRouter.post("/signup", async (req, res) => {
             lastName,
             emailID,
             password: hashPwd,
+
         });
 
         await user.save();
